@@ -1,29 +1,788 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPA Calculator</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<div class="container">
-    <h1>GPA Calculator</h1>
-
-    <label>عدد المواد:</label>
-    <input type="number" id="numSubjects" min="1">
-    <button onclick="createInputs()">التالي</button>
-
-    <form id="subjectsForm"></form>
-
-    <button id="calcBtn" onclick="calculateGPA()" style="display:none;">
-        احسب GPA
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>حاسبة GPA</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #f8f7f4;
+        --card: #ffffff;
+        --border: rgba(0, 0, 0, 0.1);
+        --text: #1a1a1a;
+        --muted: #6b6b6b;
+        --accent: #5340c9;
+        --accent-light: #eeecfc;
+        --input-bg: #f4f3f0;
+        --progress-bg: #e9e8e4;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+      }
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 0;
+        direction: rtl;
+      }
+      .wrap {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem 3rem;
+      }
+      h1 {
+        font-size: 22px;
+        font-weight: 500;
+        margin-bottom: 4px;
+        color: var(--text);
+      }
+      .subtitle {
+        font-size: 14px;
+        color: var(--muted);
+        margin-bottom: 1.5rem;
+      }
+      .card {
+        background: var(--card);
+        border: 0.5px solid var(--border);
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow);
+      }
+      .step-label {
+        font-size: 12px;
+        color: var(--accent);
+        font-weight: 500;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .input-row {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .input-row.three {
+        grid-template-columns: 2fr 1fr 1fr;
+      }
+      .input-row.one {
+        grid-template-columns: 1fr;
+      }
+      @media (max-width: 500px) {
+        .input-row.three {
+          grid-template-columns: 1fr;
+        }
+      }
+      label {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 4px;
+        display: block;
+      }
+      input[type="number"],
+      input[type="text"] {
+        width: 100%;
+        padding: 9px 12px;
+        border: 0.5px solid var(--border);
+        border-radius: 10px;
+        background: var(--input-bg);
+        color: var(--text);
+        font-size: 15px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      input:focus {
+        border-color: var(--accent);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 22px;
+        border-radius: 10px;
+        border: 0.5px solid var(--border);
+        background: var(--card);
+        color: var(--text);
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-family: inherit;
+      }
+      .btn:hover {
+        background: var(--input-bg);
+      }
+      .btn:active {
+        transform: scale(0.98);
+      }
+      .btn.primary {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+      }
+      .btn.primary:hover {
+        opacity: 0.9;
+      }
+      .subject-card {
+        background: var(--input-bg);
+        border: 0.5px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 8px;
+        transition: border-color 0.2s;
+      }
+      .subject-card.active {
+        border-color: var(--accent);
+      }
+      .subject-title {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .subject-badge {
+        display: inline-block;
+        background: var(--accent-light);
+        color: var(--accent);
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-weight: 500;
+      }
+      .progress-wrap {
+        margin: 8px 0 4px;
+      }
+      .progress-bar-bg {
+        height: 6px;
+        background: var(--progress-bg);
+        border-radius: 99px;
+        overflow: hidden;
+      }
+      .progress-bar-fill {
+        height: 100%;
+        border-radius: 99px;
+        transition:
+          width 0.4s ease,
+          background 0.4s;
+      }
+      .gpa-display {
+        text-align: center;
+        padding: 1.5rem 1rem;
+      }
+      .gpa-number {
+        font-size: 56px;
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: -2px;
+        color: var(--accent);
+      }
+      .gpa-label {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+      .grade-tag {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        margin-top: 10px;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 1rem;
+      }
+      .stat-card {
+        background: var(--input-bg);
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+      }
+      .stat-val {
+        font-size: 20px;
+        font-weight: 500;
+      }
+      .stat-lbl {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      #chart-area {
+        margin-top: 1rem;
+        position: relative;
+        width: 100%;
+        height: 220px;
+      }
+      .nav-dots {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        margin: 16px 0 12px;
+        flex-wrap: wrap;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--progress-bg);
+        transition:
+          background 0.2s,
+          width 0.2s;
+        cursor: pointer;
+      }
+      .dot.done {
+        background: var(--accent);
+        opacity: 0.5;
+      }
+      .dot.current {
+        background: var(--accent);
+        width: 20px;
+        border-radius: 99px;
+      }
+      .hidden {
+        display: none;
+      }
+      .fade {
+        animation: fadeIn 0.25s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .toggle-dark {
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        background: var(--card);
+        border: 0.5px solid var(--border);
+        border-radius: 10px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--text);
+        z-index: 99;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="toggle-dark" id="darkBtn" onclick="toggleDark()">
+      🌙 داكن
     </button>
 
-    <h2 id="result"></h2>
-</div>
+    <div class="wrap">
+      <h1>حاسبة GPA</h1>
+      <p class="subtitle">احسب معدلك التراكمي بسهولة</p>
 
-<script src="script.js"></script>
-</body>
+      <div id="stepCount" class="card fade">
+        <div class="step-label">الخطوة 1 من 2</div>
+        <div class="input-row one">
+          <div>
+            <label>كم عدد المواد؟</label>
+            <input
+              type="number"
+              id="numCourses"
+              min="1"
+              max="20"
+              placeholder="مثال: 6"
+            />
+          </div>
+        </div>
+        <button class="btn primary" onclick="startCourses()">
+          <i class="ti ti-arrow-left"></i> ابدأ
+        </button>
+      </div>
+
+      <div id="stepCourses" class="card hidden fade">
+        <div class="step-label" id="courseStepLabel">الخطوة 2 من 2</div>
+        <div id="navDots" class="nav-dots"></div>
+        <div id="subjectsContainer"></div>
+        <div style="display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap">
+          <button class="btn" onclick="prevCourse()">
+            <i class="ti ti-arrow-right"></i> السابق
+          </button>
+          <button class="btn primary" id="nextBtn" onclick="nextCourse()">
+            التالي <i class="ti ti-arrow-left"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="stepResult" class="hidden fade">
+        <div class="card">
+          <div class="gpa-display">
+            <div class="gpa-number" id="gpaValue">0.00</div>
+            <div class="gpa-label">معدلك التراكمي من 4.0</div>
+            <div id="gradeTag" class="grade-tag"></div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-val" id="totalHours">0</div>
+              <div class="stat-lbl">إجمالي الساعات</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val" id="numSubjects">0</div>
+              <div class="stat-lbl">عدد المواد</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val" id="avgScore">0</div>
+              <div class="stat-lbl">متوسط الدرجات</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 0">
+          <div style="font-size: 14px; font-weight: 500; margin-bottom: 12px">
+            تفاصيل المواد
+          </div>
+          <div id="subjectsList"></div>
+        </div>
+
+        <div class="card" style="margin-top: 0">
+          <div style="font-size: 14px; font-weight: 500; margin-bottom: 12px">
+            الرسم البياني
+          </div>
+          <div id="chart-area">
+            <canvas
+              id="myChart"
+              role="img"
+              aria-label="رسم بياني يوضح درجات المواد ونقاط GPA لكل مادة"
+            ></canvas>
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem; text-align: center">
+          <button class="btn" onclick="reset()">
+            <i class="ti ti-refresh"></i> احسب مجددًا
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script>
+      let courses = [];
+      let currentIdx = 0;
+      let totalCourses = 0;
+      let isDark = false;
+      let chartInst = null;
+
+      function toggleDark() {
+        isDark = !isDark;
+        const btn = document.getElementById("darkBtn");
+        if (isDark) {
+          document.documentElement.style.setProperty("--bg", "#1a1917");
+          document.documentElement.style.setProperty("--card", "#252422");
+          document.documentElement.style.setProperty(
+            "--border",
+            "rgba(255,255,255,0.1)",
+          );
+          document.documentElement.style.setProperty("--text", "#f0ede8");
+          document.documentElement.style.setProperty("--muted", "#9e9b96");
+          document.documentElement.style.setProperty("--accent", "#8b7ef8");
+          document.documentElement.style.setProperty(
+            "--accent-light",
+            "#2a2560",
+          );
+          document.documentElement.style.setProperty("--input-bg", "#2e2c2a");
+          document.documentElement.style.setProperty(
+            "--progress-bg",
+            "#333230",
+          );
+          document.documentElement.style.setProperty(
+            "--shadow",
+            "0 1px 3px rgba(0,0,0,0.3)",
+          );
+          btn.textContent = "☀️ فاتح";
+        } else {
+          document.documentElement.style.setProperty("--bg", "#f8f7f4");
+          document.documentElement.style.setProperty("--card", "#ffffff");
+          document.documentElement.style.setProperty(
+            "--border",
+            "rgba(0,0,0,0.1)",
+          );
+          document.documentElement.style.setProperty("--text", "#1a1a1a");
+          document.documentElement.style.setProperty("--muted", "#6b6b6b");
+          document.documentElement.style.setProperty("--accent", "#5340c9");
+          document.documentElement.style.setProperty(
+            "--accent-light",
+            "#eeecfc",
+          );
+          document.documentElement.style.setProperty("--input-bg", "#f4f3f0");
+          document.documentElement.style.setProperty(
+            "--progress-bg",
+            "#e9e8e4",
+          );
+          document.documentElement.style.setProperty(
+            "--shadow",
+            "0 1px 3px rgba(0,0,0,0.07)",
+          );
+          btn.textContent = "🌙 داكن";
+        }
+      }
+
+      function gradeToGPA(score) {
+        if (score >= 96) return 4;
+        if (score >= 92) return 3.7;
+        if (score >= 88) return 3.4;
+        if (score >= 84) return 3.2;
+        if (score >= 80) return 3;
+        if (score >= 76) return 2.8;
+        if (score >= 72) return 2.6;
+        if (score >= 68) return 2.4;
+        if (score >= 64) return 2.2;
+        if (score >= 60) return 2;
+        if (score >= 55) return 1.5;
+        if (score >= 50) return 1;
+        return 0;
+      }
+
+      function getGradeLabel(gpa) {
+        if (gpa >= 3.5)
+          return { label: "ممتاز", bg: "#d4f0e0", color: "#1a6b3c" };
+        if (gpa >= 3.0)
+          return { label: "جيد جداً", bg: "#dceeff", color: "#1a4b8c" };
+        if (gpa >= 2.5)
+          return { label: "جيد", bg: "#fff3d4", color: "#7a4d00" };
+        if (gpa >= 2.0)
+          return { label: "مقبول", bg: "#ffe8d4", color: "#7a3000" };
+        return { label: "فاجر", bg: "#ffd4d4", color: "#7a0000" };
+      }
+
+      function getBarColor(gpa) {
+        if (gpa >= 3.5) return "#2dbe72";
+        if (gpa >= 3.0) return "#4a90d9";
+        if (gpa >= 2.5) return "#f0a500";
+        if (gpa >= 2.0) return "#e07030";
+        return "#e04040";
+      }
+
+      function startCourses() {
+        const n = parseInt(document.getElementById("numCourses").value);
+        if (!n || n < 1 || n > 20) {
+          alert("أدخل عدد مواد بين 1 و20");
+          return;
+        }
+        totalCourses = n;
+        courses = Array.from({ length: n }, () => ({
+          name: "",
+          score: "",
+          hours: "",
+        }));
+        document.getElementById("stepCount").classList.add("hidden");
+        document.getElementById("stepCourses").classList.remove("hidden");
+        document.getElementById("stepCourses").classList.add("fade");
+        currentIdx = 0;
+        renderCourse();
+      }
+
+      function renderCourse() {
+        const c = courses[currentIdx];
+        const container = document.getElementById("subjectsContainer");
+        container.innerHTML = `
+    <div class="subject-card active fade">
+      <div class="subject-title">
+        <span class="subject-badge">مادة ${currentIdx + 1}</span>
+        <span style="color:var(--muted);font-size:12px">من ${totalCourses}</span>
+      </div>
+      <div class="input-row three">
+        <div>
+          <label>اسم المادة</label>
+          <input type="text" id="cname" placeholder="مثال: رياضيات" value="${c.name}" oninput="saveCurrent()"/>
+        </div>
+        <div>
+          <label>الدرجة / 100</label>
+          <input type="number" id="cscore" min="0" max="100" placeholder="85" value="${c.score}" oninput="saveCurrent();updateBar()"/>
+        </div>
+        <div>
+          <label>الساعات</label>
+          <input type="number" id="chours" min="1" max="10" placeholder="3" value="${c.hours}" oninput="saveCurrent()"/>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
+          <span>الدرجة</span>
+          <span id="scoreLabel">${c.score ? c.score + " / 100" : ""}</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="barFill" style="width:${c.score ? c.score : "0"}%;background:${getBarColor(gradeToGPA(parseFloat(c.score) || 0))}"></div>
+        </div>
+      </div>
+    </div>`;
+        renderDots();
+        document.getElementById("courseStepLabel").textContent =
+          `مادة ${currentIdx + 1} من ${totalCourses}`;
+        const nextBtn = document.getElementById("nextBtn");
+        if (currentIdx === totalCourses - 1) {
+          nextBtn.innerHTML = 'احسب GPA <i class="ti ti-calculator"></i>';
+        } else {
+          nextBtn.innerHTML = 'التالي <i class="ti ti-arrow-left"></i>';
+        }
+        setTimeout(() => {
+          document.getElementById("cname").focus();
+        }, 100);
+      }
+
+      function renderDots() {
+        const dots = document.getElementById("navDots");
+        dots.innerHTML = courses
+          .map(
+            (_, i) =>
+              `<div class="dot ${i < currentIdx ? "done" : i === currentIdx ? "current" : ""}" onclick="jumpTo(${i})"></div>`,
+          )
+          .join("");
+      }
+
+      function jumpTo(i) {
+        saveCurrent();
+        currentIdx = i;
+        renderCourse();
+      }
+
+      function saveCurrent() {
+        courses[currentIdx].name =
+          document.getElementById("cname")?.value || "";
+        courses[currentIdx].score =
+          document.getElementById("cscore")?.value || "";
+        courses[currentIdx].hours =
+          document.getElementById("chours")?.value || "";
+      }
+
+      function updateBar() {
+        const s = parseFloat(document.getElementById("cscore")?.value || 0);
+        const fill = document.getElementById("barFill");
+        const lbl = document.getElementById("scoreLabel");
+        if (fill) {
+          fill.style.width = Math.min(s, 100) + "%";
+          fill.style.background = getBarColor(gradeToGPA(s));
+        }
+        if (lbl) {
+          lbl.textContent = s ? s + " / 100" : "";
+        }
+      }
+
+      function nextCourse() {
+        saveCurrent();
+        const c = courses[currentIdx];
+        if (!c.score || !c.hours) {
+          alert("أدخل الدرجة وعدد الساعات على الأقل");
+          return;
+        }
+        if (parseFloat(c.score) < 0 || parseFloat(c.score) > 100) {
+          alert("الدرجة يجب أن تكون بين 0 و100");
+          return;
+        }
+        if (currentIdx === totalCourses - 1) {
+          showResults();
+        } else {
+          currentIdx++;
+          renderCourse();
+        }
+      }
+
+      function prevCourse() {
+        saveCurrent();
+        if (currentIdx > 0) {
+          currentIdx--;
+          renderCourse();
+        }
+      }
+
+      function showResults() {
+        document.getElementById("stepCourses").classList.add("hidden");
+        const res = document.getElementById("stepResult");
+        res.classList.remove("hidden");
+        res.classList.add("fade");
+
+        let totalPoints = 0,
+          totalHrs = 0,
+          totalScore = 0;
+        courses.forEach((c) => {
+          const hrs = parseFloat(c.hours) || 0;
+          const score = parseFloat(c.score) || 0;
+          const gpa = gradeToGPA(score);
+          totalPoints += gpa * hrs;
+          totalHrs += hrs;
+          totalScore += score;
+        });
+
+        const finalGPA = totalHrs > 0 ? totalPoints / totalHrs : 0;
+        document.getElementById("gpaValue").textContent = finalGPA.toFixed(2);
+        document.getElementById("totalHours").textContent = totalHrs;
+        document.getElementById("numSubjects").textContent = courses.length;
+        document.getElementById("avgScore").textContent = (
+          totalScore / courses.length
+        ).toFixed(1);
+
+        const gradeInfo = getGradeLabel(finalGPA);
+        const tag = document.getElementById("gradeTag");
+        tag.textContent = gradeInfo.label;
+        tag.style.background = gradeInfo.bg;
+        tag.style.color = gradeInfo.color;
+
+        const listEl = document.getElementById("subjectsList");
+        listEl.innerHTML = courses
+          .map((c, i) => {
+            const score = parseFloat(c.score) || 0;
+            const gpa = gradeToGPA(score);
+            const color = getBarColor(gpa);
+            const name = c.name || `مادة ${i + 1}`;
+            return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+        <span style="font-weight:500">${name}</span>
+        <span style="color:var(--muted)">${score} درجة &nbsp;·&nbsp; <span style="color:${color};font-weight:500">${gpa.toFixed(1)}</span> نقطة</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width:${score}%;background:${color}"></div>
+      </div>
+    </div>`;
+          })
+          .join("");
+
+        setTimeout(() => buildChart(), 100);
+      }
+
+      function buildChart() {
+        const labels = courses.map((c, i) => c.name || `مادة ${i + 1}`);
+        const scores = courses.map((c) => parseFloat(c.score) || 0);
+        const gpas = courses.map((c) => gradeToGPA(parseFloat(c.score) || 0));
+        const barColors = gpas.map((g) => getBarColor(g));
+
+        if (chartInst) {
+          chartInst.destroy();
+        }
+        const textColor = isDark ? "#9e9b96" : "#6b6b6b";
+        const gridColor = isDark
+          ? "rgba(255,255,255,0.07)"
+          : "rgba(0,0,0,0.06)";
+
+        chartInst = new Chart(document.getElementById("myChart"), {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "الدرجة",
+                data: scores,
+                backgroundColor: barColors,
+                borderRadius: 6,
+                borderSkipped: false,
+                yAxisID: "y",
+                order: 2,
+              },
+              {
+                label: "نقاط GPA",
+                data: gpas,
+                type: "line",
+                borderColor: "#8b7ef8",
+                backgroundColor: "rgba(139,126,248,0.15)",
+                tension: 0.4,
+                pointBackgroundColor: "#8b7ef8",
+                pointRadius: 5,
+                yAxisID: "y1",
+                borderWidth: 2,
+                order: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) =>
+                    ctx.datasetIndex === 0
+                      ? `الدرجة: ${ctx.raw}`
+                      : `GPA: ${ctx.raw.toFixed(1)}`,
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: { color: textColor, font: { size: 11 } },
+                grid: { color: gridColor },
+                border: { display: false },
+              },
+              y: {
+                position: "right",
+                min: 0,
+                max: 100,
+                ticks: { color: textColor, font: { size: 11 } },
+                grid: { color: gridColor },
+                border: { display: false },
+                title: {
+                  display: true,
+                  text: "الدرجة",
+                  color: textColor,
+                  font: { size: 11 },
+                },
+              },
+              y1: {
+                position: "left",
+                min: 0,
+                max: 4,
+                ticks: { color: "#8b7ef8", font: { size: 11 } },
+                grid: { display: false },
+                border: { display: false },
+                title: {
+                  display: true,
+                  text: "GPA",
+                  color: "#8b7ef8",
+                  font: { size: 11 },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      function reset() {
+        courses = [];
+        currentIdx = 0;
+        totalCourses = 0;
+        document.getElementById("stepResult").classList.add("hidden");
+        document.getElementById("numCourses").value = "";
+        document.getElementById("stepCount").classList.remove("hidden");
+        document.getElementById("stepCount").classList.add("fade");
+        if (chartInst) {
+          chartInst.destroy();
+          chartInst = null;
+        }
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const stepCount = document.getElementById("stepCount");
+          const stepCourses = document.getElementById("stepCourses");
+          if (!stepCount.classList.contains("hidden")) {
+            startCourses();
+          } else if (!stepCourses.classList.contains("hidden")) {
+            nextCourse();
+          }
+        }
+      });
+    </script>
+  </body>
 </html>
